@@ -3,7 +3,7 @@ Keep nodes manager
 
 Ready build:
 
---win10_ready_build.EXE.rar  file contains  win10 build ready for execution.
+--win10_ready_build.rar  file contains  win10 build ready for execution.
 
 Building from source:
 
