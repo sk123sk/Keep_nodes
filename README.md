@@ -3,7 +3,7 @@ Keep nodes manager
 
 Ready build:
 
---win10_ready_build.rar  file contains  win10 build ready for execution.
+--use KeepNodesInstaller.exe to install and run app in windows.
 
 Building from source:
 
