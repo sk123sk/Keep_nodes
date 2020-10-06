@@ -4,7 +4,7 @@
 #include <QMessageBox>
 
 Step_1::Step_1(QWidget *parent) :
-    QMainWindow(parent), _next(0),_keepGrant(0),
+    QMainWindow(parent), _next(0),
     ui(new Ui::Step_1)
 {
     ui->setupUi(this);
@@ -20,12 +20,21 @@ Step_1::~Step_1()
 void Step_1::on_btn_next_clicked()
 {
     _next=1;
-    QString wallet = ui->le_wallet->text();
-    QString pwd = ui->le_pwd->text();
-    _networkManager = new QNetworkAccessManager();
-    _request.setUrl(QUrl(QString("https://us-central1-keep-test-f3e0.cloudfunctions.net/keep-faucet-ropsten?account=%1").arg(wallet)));
-    QNetworkReply* reply = _networkManager->get(_request);
-    connect(reply, SIGNAL(finished()),this, SLOT(replyKeepGrantFinished()));
+    if (!_keepGrants.contains(ui->le_wallet->text())){
+        QString wallet = ui->le_wallet->text();
+        QString pwd = ui->le_pwd->text();
+        _networkManager = new QNetworkAccessManager();
+        _request.setUrl(QUrl(QString("https://us-central1-keep-test-f3e0.cloudfunctions.net/keep-faucet-ropsten?account=%1").arg(wallet)));
+        QNetworkReply* reply = _networkManager->get(_request);
+        connect(reply, SIGNAL(finished()),this, SLOT(replyKeepGrantFinished()));
+    }
+    else
+    {
+        this->hide();
+        QString wallet = ui->le_wallet->text();
+        QString pwd = ui->le_pwd->text();
+        emit setData(wallet, pwd, _path);
+    }
 }
 
 void Step_1::on_btn_select_keystore_clicked()
@@ -47,19 +56,23 @@ void Step_1::replyKeepGrantFinished()
     if (reply->error()) {
         qDebug() << reply->errorString();
         if(QString(reply->readAll()).contains("maximum testnet KEEP")){
-            qDebug()<<"Already got 300k";
-            _keepGrant=true;
+            QMessageBox::StandardButton grantResult;
+            grantResult = QMessageBox::information(this, tr("Keep grant status"), "This wallet already got 300k KEEP grant");
+            _keepGrants.insert(ui->le_wallet->text(), true);
         }
         else {
-             qDebug()<<"Keep 300 tokens claim error. Try again. "+reply->readAll();
-        return;
+            qDebug()<<"Keep 300k tokens grant claiming error. Try again!"+reply->readAll();
+            QMessageBox::StandardButton grantResult;
+            grantResult = QMessageBox::information(this, tr("Keep grant status"), "Keep 300k tokens grant claiming error. Try again!");
+            return;
         }
     }
-    QString answer = reply->readAll();
-    qDebug() << answer;
-    if (answer.contains("Created")){
+    QString grantStatus = reply->readAll();
+    if (grantStatus.contains("Created")){
         qDebug()<<"Successfully got 300k KEEP(test)";
-        _keepGrant = true;
+        QMessageBox::StandardButton grantResult;
+        grantResult = QMessageBox::information(this, tr("Keep grant status"), "Successfully claimed 300k KEEP grant");
+        _keepGrants.insert(ui->le_wallet->text(), true);
     }
     this->hide();
     QString wallet = ui->le_wallet->text();

@@ -35,7 +35,7 @@ private:
     Ui::Step_1 *ui;
     QString _path;
     bool _next;
-    bool _keepGrant;
+    QMap<QString, bool> _keepGrants;
     QNetworkAccessManager* _networkManager;
     QNetworkRequest _request;
     QUrl _reqUrl;

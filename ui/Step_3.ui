@@ -118,7 +118,7 @@
       <x>10</x>
       <y>40</y>
       <width>331</width>
-      <height>201</height>
+      <height>211</height>
      </rect>
     </property>
     <property name="readOnly">
@@ -128,7 +128,7 @@
      <string>1. Obtain Free TestNet ETH: go to website and connect your MetaMask there. Press &quot;request 1 ether from faucet&quot;
 https://faucet.metamask.io/
 
-2. Delegate KEEP. Instruction:
+2. Request for 300k test KEEP was successfull. Delegate KEEP now. Instruction:
 https://icohigh.gitbook.io/keep-nodes/english/installation-guide/delegating-keep
 
 3. Choose node type: beacon or ECDSA on this step screen
@@ -149,7 +149,7 @@ https://icohigh.gitbook.io/keep-nodes/english/installation-guide/delegating-keep
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap resource="logoKeep.qrc">:/logo/logo2.png</pixmap>
+     <pixmap resource="../resources/logo.qrc">:/logo/logo2.png</pixmap>
     </property>
    </widget>
   </widget>
@@ -166,7 +166,7 @@ https://icohigh.gitbook.io/keep-nodes/english/installation-guide/delegating-keep
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="logoKeep.qrc"/>
+  <include location="../resources/logo.qrc"/>
  </resources>
  <connections/>
 </ui>

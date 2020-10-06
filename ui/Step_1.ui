@@ -41,6 +41,11 @@
       <height>22</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QLineEdit" name="le_pwd">
     <property name="geometry">
@@ -50,6 +55,11 @@
       <width>271</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_select_keystore">

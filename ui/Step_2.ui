@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>531</width>
-    <height>371</height>
+    <height>391</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,14 +19,19 @@
   <property name="minimumSize">
    <size>
     <width>531</width>
-    <height>371</height>
+    <height>391</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>531</width>
-    <height>371</height>
+    <height>391</height>
    </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Keep nodes</string>
@@ -36,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>260</y>
+      <y>280</y>
       <width>80</width>
       <height>22</height>
      </rect>
@@ -49,7 +54,7 @@
     <property name="geometry">
      <rect>
       <x>440</x>
-      <y>260</y>
+      <y>280</y>
       <width>80</width>
       <height>22</height>
      </rect>
@@ -100,7 +105,7 @@
       <x>30</x>
       <y>50</y>
       <width>281</width>
-      <height>181</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="readOnly">
@@ -139,7 +144,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>260</y>
+      <y>280</y>
       <width>281</width>
       <height>22</height>
      </rect>
@@ -149,7 +154,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>240</y>
+      <y>260</y>
       <width>181</width>
       <height>16</height>
      </rect>
@@ -162,7 +167,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>290</y>
+      <y>310</y>
       <width>141</width>
       <height>20</height>
      </rect>
@@ -181,7 +186,7 @@
      <x>0</x>
      <y>0</y>
      <width>531</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

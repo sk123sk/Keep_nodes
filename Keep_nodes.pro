@@ -42,6 +42,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+RC_FILE = resource.rc
 
 win32:LIBS += -L$$PWD/ -lcrypt32 -ldnsapi -lws2_32
 
