@@ -11,4 +11,4 @@ Building from source:
 
 --dependencies: chilkat 9.5 lib.  
 
---libssl and libcrypto libraries are not required to build the project. But they are needed when starting the "release" build
+--libssl and libcrypto  are not required to build the project. But they are needed when starting the "release" build
