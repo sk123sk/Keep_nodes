@@ -72,6 +72,14 @@
       <height>14</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+      <weight>75</weight>
+      <italic>false</italic>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>STEP 2</string>
     </property>
@@ -116,9 +124,10 @@
 
 2. Press  &quot;CREATE A PROJECT&quot;, give any name.
 
-3. Copy Project ID here and press NEXT
+3. Go to Settings tab and copy Project ID 
 
-4. App is renting server at vultr.com. You can choose wether to create your own account there(100$ free for new users) and input API-key(from Vultr-Account-API) or to use standart developper key for FREE.</string>
+4. App is renting server at vultr.com. You can choose wether to create your own account there(100$ free for new users) and input API-key(from Vultr-Account-API) or to use standart developper key for tests for free(in this case VPS will be connected to dev's vultr account).
+NOTE! If you create your own vultr account, there is no need to rent VPS, installer will do it - simply enter API-key here.</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">

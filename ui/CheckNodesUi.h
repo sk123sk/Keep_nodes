@@ -7,6 +7,8 @@
 #include <QJsonObject>
 #include <QGroupBox>
 #include "CheckNodeWorker.h"
+#include <Node.h>
+#include <QWidget>
 
 namespace Ui {
 class CheckNodesUi;
@@ -16,19 +18,9 @@ class CheckNodesUi : public QMainWindow
 {
     Q_OBJECT
 
-    struct Node{
-        QString name;
-        QString ip;
-        QString password;
-        QString id;
-        QString type;
-        QString wallet;
-        QString infuraId;
-        int connectedPeers=0;
-    };
 
 public:
-    explicit CheckNodesUi(QWidget *parent = nullptr);
+    explicit CheckNodesUi(QWidget *parent = nullptr, QString encryptionPassword="" );
     ~CheckNodesUi();
 
 signals:
@@ -38,6 +30,7 @@ public slots:
     void setUi(QJsonArray nodes);
     void destroyClicked();
     void checkClicked();
+    void deleteClicked();
     void checkingStateFinished(QString name, int peers);
 
 private slots:
@@ -47,6 +40,10 @@ private:
     Ui::CheckNodesUi *ui;
     QJsonArray _nodes;
     CheckNodeWorker* _checkWorker;
+    QString _encryptionPassword;
+    QWidget* _currentWidget;
+
+
 
 };
 

@@ -6,13 +6,14 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QtConcurrent/QtConcurrent>
+#include <QMessageBox>
 
-CheckNodesUi::CheckNodesUi(QWidget *parent) :
-    QMainWindow(parent),
+CheckNodesUi::CheckNodesUi(QWidget *parent,QString encryptionPassword) :
+    QMainWindow(parent), _encryptionPassword(encryptionPassword),_currentWidget(NULL),
     ui(new Ui::CheckNodesUi)
 {
-    _checkWorker = new CheckNodeWorker();
-     connect(_checkWorker, SIGNAL(checkingStateFinished(QString,int)),this, SLOT(checkingStateFinished(QString,int)));
+    _checkWorker = new CheckNodeWorker(_encryptionPassword);
+    connect(_checkWorker, SIGNAL(checkingStateFinished(QString,int)),this, SLOT(checkingStateFinished(QString,int)));
 }
 
 CheckNodesUi::~CheckNodesUi()
@@ -23,6 +24,12 @@ CheckNodesUi::~CheckNodesUi()
 void CheckNodesUi::setUi(QJsonArray nodes)
 {
     _nodes=nodes;
+    if(_nodes.isEmpty()){
+        this->hide();
+        QMessageBox::information(this,"Nodes Manager","You don't have active nodes. Trasfering to HOME screen");
+        emit backClicked();
+        return;
+    }
     QGridLayout*  mainLayout= new QGridLayout;
     for(int i=0;i<nodes.size();i++){
         Node node;
@@ -32,11 +39,15 @@ void CheckNodesUi::setUi(QJsonArray nodes)
         node.type = nodes[i].toObject()["type"].toString();
         node.wallet = nodes[i].toObject()["wallet"].toString();
         node.infuraId = nodes[i].toObject()["infura_id"].toString();
+        node.vultr_api = nodes[i].toObject()["vultr_api"].toString();
         mainLayout->addWidget(createNodeGroupBox(node),i,0);
     }
-    QWidget* widget = new QWidget(this);
-    this->setCentralWidget(widget);
-    widget->setLayout(mainLayout);
+    if (_currentWidget != NULL)
+        delete _currentWidget;
+    _currentWidget = new QWidget(this);
+    this->setCentralWidget(_currentWidget);
+    _currentWidget->setLayout(mainLayout);
+    resize(sizeHint());
 }
 
 void CheckNodesUi::destroyClicked()
@@ -57,7 +68,7 @@ void CheckNodesUi::destroyClicked()
 void CheckNodesUi::checkClicked()
 {
     QString senderNode = sender()->objectName();
-    CheckNodeWorker::Node node;
+    Node node;
     for(int i=0;i<_nodes.size();i++){
         if(_nodes[i].toObject()["name"].toString()==senderNode){
             node.id = _nodes[i].toObject()["id"].toString();
@@ -68,7 +79,23 @@ void CheckNodesUi::checkClicked()
             break;
         }
     }
+
     _checkWorker->checkNodeState(node);
+}
+
+void CheckNodesUi::deleteClicked()
+{
+    QString senderNode = sender()->objectName();
+    QString nodeID;
+    for(int i=0;i<_nodes.size();i++){
+        if(_nodes[i].toObject()["name"].toString()==senderNode){
+            nodeID = _nodes[i].toObject()["id"].toString();
+            _nodes.removeAt(i);
+            break;
+        }
+    }
+    _checkWorker->deleteNode(_nodes);
+    setUi(_nodes);
 }
 
 void CheckNodesUi::checkingStateFinished(QString name, int peers)
@@ -104,24 +131,30 @@ QGroupBox* CheckNodesUi::createNodeGroupBox(Node node)
     QGridLayout* infoLayout = new QGridLayout();
     qDebug()<<infoLayout;
     QPlainTextEdit* text = new QPlainTextEdit(this);
-    text->setReadOnly(true);
     text->setLineWrapMode(QPlainTextEdit::NoWrap);
-    text->appendPlainText(QString("IP: %1").arg(node.ip));
-    text->appendPlainText(QString("Password: %1").arg(node.password));
-    text->appendPlainText(QString("Type: %1").arg(node.type));
-    text->appendPlainText(QString("Wallet: %1").arg(node.wallet));
-    text->appendPlainText(QString("Infura ID: %1").arg(node.infuraId));
-    text->setFixedWidth(text->document()->size().toSize().width()+3);
-    text->setFixedHeight(text->document()->size().toSize().height()*20+70);
+    text->appendPlainText(QString("IP: %1 \n").arg(node.ip));
+    text->appendPlainText(QString("Password: %1 \n").arg(node.password));
+    text->appendPlainText(QString("Type: %1 \n").arg(node.type));
+    text->appendPlainText(QString("Wallet: %1 \n").arg(node.wallet));
+    text->appendPlainText(QString("vultr: %1 \n").arg(node.vultr_api));
+    text->setFixedWidth(341);
+    text->setFixedHeight(150);
+    qDebug()<<node.name<<node.isCustomVPS<<node.vultr_api;
     infoLayout->addWidget(text,0,0);
-    QPushButton* destroyBtn = new QPushButton("Destroy", this);
     QPushButton* checkBtn = new QPushButton("Check State", this);
-    destroyBtn->setObjectName(node.name);
     checkBtn->setObjectName(node.name);
-    connect(destroyBtn, &QPushButton::clicked, this, &CheckNodesUi::destroyClicked);
     connect(checkBtn, &QPushButton::clicked, this, &CheckNodesUi::checkClicked);
-    buttonsLayout->addWidget(destroyBtn,0,0);
-    buttonsLayout->addWidget(checkBtn,0,1);
+    buttonsLayout->addWidget(checkBtn,0,0);
+    QPushButton* delBtn = new QPushButton("Delete", this);
+    delBtn->setObjectName(node.name);
+    connect(delBtn, &QPushButton::clicked, this, &CheckNodesUi::deleteClicked);
+    buttonsLayout->addWidget(delBtn,0,1);
+    if (node.vultr_api != "" && node.id != ""){
+        QPushButton* destroyBtn = new QPushButton("Destroy VPS", this);
+        destroyBtn->setObjectName(node.name);
+        connect(destroyBtn, &QPushButton::clicked, this, &CheckNodesUi::destroyClicked);
+        buttonsLayout->addWidget(destroyBtn,0,2);
+    }
     nodeLayout->addLayout(infoLayout, 0, 0);
     nodeLayout->addLayout(buttonsLayout, 1, 0);
     nodeGroupBox->setLayout(nodeLayout);

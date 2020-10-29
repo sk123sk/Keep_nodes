@@ -2,46 +2,46 @@
 #include <QDebug>
 #include <QThread>
 #include <QFile>
-#include <QTextStream>
+#include <QDataStream>
+#include "Encryptor.h"
+#include "QProcess"
+#include "QDir"
+#include <QMessageBox>
 
-
-CreateNodeWorker::CreateNodeWorker(): _isNodeStatusActive(0)
+CreateNodeWorker::CreateNodeWorker(Node node, QString pwd, QString keyStore, QString encryptionPassword)
 {
-
-}
-
-CreateNodeWorker::CreateNodeWorker(QString wallet, QString pwd, QString keyStore, QString infuraId, QString nodeLabel, QString nodeType, QString api)
-{
-    _currentNode.wallet=wallet;
+    _currentNode = node;
     _keystore_pwd=pwd;
     _keystore=keyStore;
-    _currentNode.infuraId=infuraId;
-    _currentNode.name=nodeLabel;
-    _currentNode.type=nodeType;
-    _apiKey=api;
+    _encryptionPassword=encryptionPassword;
+    _widget=new QWidget;
 }
 
 
 void CreateNodeWorker::deployNode()
 {
-    _networkManager=new QNetworkAccessManager;
-    qDebug()<<"Worker started. Deploying..";
-    QUrl reqUrl =  QUrl("https://api.vultr.com/v1/server/create");
-    QNetworkRequest _request=QNetworkRequest(reqUrl);
-    _request.setRawHeader("API-Key", _apiKey.toUtf8());
-    _query.addQueryItem("DCID", "5");
-    _query.addQueryItem("VPSPLANID", "203");
-    _query.addQueryItem("OSID", "270");
-    _query.addQueryItem("label", _currentNode.name.toUtf8());
-    QNetworkReply* reply = _networkManager->post(_request, _query.toString(QUrl::FullyEncoded).toUtf8());
-    connect(reply, SIGNAL(finished()),this, SLOT(deployReply()));
+    if(_currentNode.isCustomVPS)
+        runSSH();
+    else {
+        _networkManager=new QNetworkAccessManager;
+        updateWorkStatus("Renting VPS server...");
+        QUrl reqUrl =  QUrl("https://api.vultr.com/v1/server/create");
+        QNetworkRequest _request=QNetworkRequest(reqUrl);
+        _request.setRawHeader("API-Key", _currentNode.vultr_api.toUtf8());
+        _query.addQueryItem("DCID", "5");
+        _query.addQueryItem("VPSPLANID", "203");
+        _query.addQueryItem("OSID", "270");
+        _query.addQueryItem("label", _currentNode.name.toUtf8());
+        QNetworkReply* reply = _networkManager->post(_request, _query.toString(QUrl::FullyEncoded).toUtf8());
+        connect(reply, SIGNAL(finished()),this, SLOT(deployReply()));
+    }
 }
 
 void CreateNodeWorker::checkDeployStatus()
 {
     QUrl reqUrl =  QUrl("https://api.vultr.com/v1/server/list");
     QNetworkRequest _request=QNetworkRequest(reqUrl);
-    _request.setRawHeader("API-Key", _apiKey.toUtf8());
+    _request.setRawHeader("API-Key", _currentNode.vultr_api.toUtf8());
     QNetworkReply* reply = _networkManager->get(_request);
     connect(reply, SIGNAL(finished()),this, SLOT(statusCheckReply()));
 }
@@ -53,7 +53,7 @@ void CreateNodeWorker::chillkatUnlock()
     bool success = glob.UnlockBundle("free unlock");
     if (success != true) {
         qDebug()<<"Chilkat unlock UNsuccess:"<<glob.lastErrorText();
-        emit updateWorkStatus("-Chilkat unlock UNsuccess:"+QString(glob.lastErrorText()));
+        emit updateWorkStatus("-- FATAL error! Chilkat unlock problem");
         return;
     }
     int status = glob.get_UnlockStatus();
@@ -67,12 +67,13 @@ void CreateNodeWorker::chillkatUnlock()
 
 void CreateNodeWorker::runSSH()
 {
+    chillkatUnlock();
     int port = 22;
     success = ssh.Connect(_currentNode.ip.toUtf8(),port);
     if (success != true) {
         std::cout << ssh.lastErrorText() << "\r\n";
         qDebug()<<ssh.lastErrorText();
-        emit updateWorkStatus("-SSH erorr"+QString(ssh.lastErrorText()));
+        emit updateWorkStatus("--FATAL error! SSH connection problem"+QString(ssh.lastErrorText()));
         return;
     }
     //  Authenticate using login/password:
@@ -80,10 +81,11 @@ void CreateNodeWorker::runSSH()
     if (success != true) {
         qDebug()<<ssh.lastErrorText();
         std::cout << ssh.lastErrorText() << "\r\n";
-        emit updateWorkStatus("-SSH pass error!" +QString(ssh.lastErrorText()));
+        emit updateWorkStatus("--FATAL error! SSH auth problem" +QString(ssh.lastErrorText()));
         return;
     }
-    emit updateWorkStatus("-SSH connection success! Installing...");
+    emit updateWorkStatus("--ssh connected!");
+    emit updateWorkStatus("--installing node...");
     QList<QString> commandsSetUp;
     QThread::currentThread()->msleep(15000);
     commandsSetUp.push_back("sudo apt update && sudo apt upgrade -y");
@@ -105,7 +107,7 @@ void CreateNodeWorker::runSSH()
         commandsSetUp.push_back(QString("grep -rl INFURA_ECDSA_ID $HOME/keep-nodes/ecdsa/config* | xargs perl -p -i -e 's/INFURA_ECDSA_ID/%1/g'").arg(_currentNode.infuraId));
     commandsSetUp.push_back("export KEEP_ETHEREUM_PASSWORD=$(cat $HOME/keep-nodes/data/eth-address-pass.txt)");
     setupNode(commandsSetUp);
-    emit updateWorkStatus("-Starting keep node...");
+    emit updateWorkStatus("--starting keep node...");
     startNode();
 }
 
@@ -133,12 +135,11 @@ void CreateNodeWorker::setupNode(QList<QString> commands)
             }
         }
     }
-    emit updateWorkStatus("\n -Configuration has been done. \n Starting...");
+    emit updateWorkStatus("--node installation finished");
 }
 
 void CreateNodeWorker::startNode()
 {
-    qDebug()<<"Starting node..";
     QList<QString> commands;
     if(_currentNode.type=="BEACON")
         commands.push_back(QString("sudo docker run -d --entrypoint /usr/local/bin/keep-client --restart always --volume $HOME/keep-nodes/data:/mnt/data --volume $HOME/keep-nodes/beacon/config:/mnt/beacon/config --volume $HOME/keep-nodes/beacon/persistence:/mnt/beacon/persistence -e  KEEP_ETHEREUM_PASSWORD='%1' -e LOG_LEVEL=debug --name keep-client -p 3919:3919 keepnetwork/keep-client:v1.3.0-rc.4 --config /mnt/beacon/config/config.toml start").arg(_keystore_pwd).toUtf8());
@@ -166,7 +167,8 @@ void CreateNodeWorker::startNode()
             }
         }
     }
-    emit updateWorkStatus(QString("\n CONGRATULATIONS! KEEP NODE IS UP! \n  In case you want to manage it use PuTTy app and these credentials:\n \n IP: %1\n Login: root \n Password: %2 \n \n To see full logs in PuTTY use command \n %3").arg(_currentNode.ip).arg(_currentNode.password).arg(_currentNode.type=="BEACON"?"sudo docker logs keep-client -f --since 1m":"sudo docker logs keep-ecdsa -f --since 1m"));
+    emit updateWorkStatus("\n Congratulations! Keep node is UP! \n");
+    emit updateWorkStatus(QString("Node credentials:<br>IP: %1<br> Login: root <br> Password: %2 <br> ..... <br> To see full logs in PuTTY use command <br> %3").arg(_currentNode.ip).arg(_currentNode.password).arg(_currentNode.type=="BEACON"?"sudo docker logs keep-client -f --since 1m":"sudo docker logs keep-ecdsa -f --since 1m"));
     saveNodeInfo();
 }
 
@@ -176,8 +178,7 @@ void CreateNodeWorker::deployReply()
     if (reply->error() == QNetworkReply::NoError) {
         QByteArray data=reply->readAll();
         _currentNode.id = QJsonDocument::fromJson(data).object()["SUBID"].toString();
-        qDebug()<<"NODE ID:"<<_currentNode.id;
-        emit updateWorkStatus(QString("\n -Deploying Started. Node ID:%1 \n -Awaiting node active status... ").arg(_currentNode.id));
+        emit updateWorkStatus(QString("\n --deploying started. VPS ID:%1 <br> --awaiting VPS active status... ").arg(_currentNode.id));
         _timer = new QTimer();
         connect(_timer, SIGNAL(timeout()), this, SLOT (checkDeployStatus()));
         _timer->start(5000);
@@ -205,8 +206,7 @@ void CreateNodeWorker::statusCheckReply()
             _timer->deleteLater();
             _currentNode.ip = QJsonDocument::fromJson(data).object()[_currentNode.id].toObject()["main_ip"].toString();
             _currentNode.password = QJsonDocument::fromJson(data).object()[_currentNode.id].toObject()["default_password"].toString();
-            emit updateWorkStatus(QString("\n -Node is running. IP:"+_currentNode.ip+" Updating configuration..."));
-            chillkatUnlock();
+            emit updateWorkStatus(QString("\n --VPS is running. IP:"+_currentNode.ip+"<br> --updating VPS configuration..."));
             runSSH();
         }
     }
@@ -217,14 +217,19 @@ void CreateNodeWorker::statusCheckReply()
 
 void CreateNodeWorker::saveNodeInfo()
 {
+    qDebug()<<"savenig new node";
+    Encryptor enc;
     QJsonArray nodes;
     QFile fileToRead("nodes.dat");
-    if (!fileToRead.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!fileToRead.open(QIODevice::ReadOnly))
         qDebug()<<"No saved nodes detected";
     else {
-        QByteArray data = fileToRead.readAll();
+        QByteArray encryptedData;
+        QDataStream in(&fileToRead);
+        in>>encryptedData;
+        QByteArray decriptedData = enc.decrypt(encryptedData, _encryptionPassword.toUtf8());
         fileToRead.close();
-        nodes = QJsonDocument::fromJson(data).array();
+        nodes = QJsonDocument::fromJson(decriptedData).array();
     }
     QJsonObject node;
     node.insert("name",_currentNode.name);
@@ -234,12 +239,195 @@ void CreateNodeWorker::saveNodeInfo()
     node.insert("type",_currentNode.type);
     node.insert("wallet",_currentNode.wallet);
     node.insert("infura_id",_currentNode.infuraId);
+    node.insert("isCustomVPS",_currentNode.isCustomVPS);
+    node.insert("vultr_api",_currentNode.vultr_api);
+    qDebug()<<node;
     nodes.push_back(node);
+    qDebug()<<nodes;
     QFile file("nodes.dat");
-    if (!file.open(QIODevice::WriteOnly  | QIODevice::Text)) {
+    if (!file.open(QIODevice::WriteOnly)) {
         qDebug()<<"file error";
         return;
     }
-    file.write(QJsonDocument(nodes).toJson());
+    QDataStream out(&file);
+    out <<enc.encrypt(QJsonDocument(nodes).toJson(), _encryptionPassword.toUtf8());
     file.close();
+}
+
+void CreateNodeWorker::get_eth_balance()
+{
+    QProcess* pythonProccess = new QProcess;
+    QStringList params;
+    params << _currentNode.wallet;
+    params << _currentNode.infuraId;
+    QObject::connect(pythonProccess, &QProcess::readyRead, [pythonProccess, this] () {
+        QByteArray data = pythonProccess->readAll();
+        QString balance  = QString(data);
+        balance.chop(2);
+        qDebug()<<"wallet balance:"<<balance;
+        if (balance.toDouble()<1)
+            updateWorkStatus(QString("Wallet balance is %1 ETH. You need at least 1 testnet ETH to continue. Try again when ready. FATAL").arg(balance));
+
+        else
+            getGrant();
+    });
+    QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+        pythonProccess->deleteLater();
+    });
+    pythonProccess->start(QDir::currentPath()+"/scripts/get_eth_balance.exe", params);
+}
+
+void CreateNodeWorker::getGrant()
+{
+    _networkManager = new QNetworkAccessManager();
+    QNetworkRequest request = QNetworkRequest();
+    request.setUrl(QUrl(QString("https://us-central1-keep-test-f3e0.cloudfunctions.net/keep-faucet-ropsten?account=%1").arg(_currentNode.wallet)));
+    QNetworkReply* reply = _networkManager->get(request);
+    connect(reply, SIGNAL(finished()),this, SLOT(replyKeepGrantFinished()));
+}
+
+void CreateNodeWorker::replyKeepGrantFinished()
+{
+    QNetworkReply* reply = (QNetworkReply*) sender();
+    if (reply->error()) {
+        qDebug() << reply->errorString();
+        if(QString(reply->readAll()).contains("maximum testnet KEEP")){
+            updateWorkStatus("--wallet already got 300k KEEP grant...");
+            delegateKeep();
+            return;
+        }
+        else {
+            qDebug()<<"Keep 300k tokens grant claiming error. Try again!"+reply->readAll();
+            getGrant();
+            return;
+        }
+    }
+    QString grantStatus = reply->readAll();
+    if (grantStatus.contains("Created")){
+        qDebug()<<"--claimed 300k KEEP grant";
+        updateWorkStatus("--successfully claimed 300k KEEP grant");
+    }
+    delegateKeep();
+}
+
+
+void CreateNodeWorker::delegateKeep()
+{
+    updateWorkStatus("--delegating KEEP...");
+    QProcess* pythonProccess = new QProcess;
+    QStringList params;
+    params << _keystore;
+    params << _keystore_pwd;
+    params << _currentNode.infuraId;
+    QObject::connect(pythonProccess, &QProcess::readyRead, [pythonProccess, this] () {
+        QByteArray data = pythonProccess->readAll();
+        qDebug() <<  data;
+        if (QString(data).contains("transaction confirmed")) {
+            updateWorkStatus("--delegated KEEP");
+            beacon_auth();
+        }
+        else {
+            updateWorkStatus("--FATAL ERROR!"+QString(data).remove("\r\n"));
+            return ;
+        }
+    });
+    QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+        pythonProccess->deleteLater();
+    });
+    pythonProccess->start(QDir::currentPath()+"/scripts/delegateKeep.exe", params);
+    pythonProccess->waitForFinished(-1);
+}
+
+void CreateNodeWorker::beacon_auth()
+{
+    updateWorkStatus("--authorizing Operator Contract...");
+    QProcess* pythonProccess = new QProcess;
+    QStringList params;
+    params << _keystore;
+    params << _keystore_pwd;
+    params << _currentNode.infuraId;
+    QObject::connect(pythonProccess, &QProcess::readyRead, [pythonProccess, this] () {
+        QByteArray data = pythonProccess->readAll();
+        qDebug() <<  data;
+        if (QString(data).contains("transaction confirmed")) {
+            updateWorkStatus("--authorized Operator Contract");
+            ecdsa_tbtc_auth();
+            return;
+        }
+        else {
+            updateWorkStatus("--FATAL ERROR! Authorizing Operator Contract failed!");
+            return ;
+        }
+    });
+    QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+        pythonProccess->deleteLater();
+    });
+    pythonProccess->start(QDir::currentPath()+"/scripts/beaconAuth.exe", params);
+    pythonProccess->waitForFinished(-1);
+}
+
+void CreateNodeWorker::ecdsa_tbtc_auth()
+{
+    updateWorkStatus("--authorizing tBTC contracts...");
+    QProcess* pythonProccess = new QProcess;
+    QStringList params;
+    params << _keystore;
+    params << _keystore_pwd;
+    params << _currentNode.infuraId;
+    QObject::connect(pythonProccess, &QProcess::readyRead, [pythonProccess, this] () {
+        QByteArray data = pythonProccess->readAll();
+        qDebug() <<  data;
+        if (QString(data).contains("transaction confirmed operator") && QString(data).contains("transaction confirmed pool")) {
+            updateWorkStatus("--authorized Operator Contract (ECDSA)");
+            updateWorkStatus("--authorized Sortition Pool Contract (ECDSA)");
+            bond_eth(0.1);
+            return;
+        }
+        else {
+            if (QString(data).contains("authOperatorContract failed"))
+                updateWorkStatus("--FATAL ERROR! Authorizing Operator Contract (ECDSA) failed!"+QString(data).remove("\r\n"));
+            else
+                updateWorkStatus("--FATAL ERROR! Authorizing Sortition Pool Contract (ECDSA)"+QString(data).remove("\r\n"));
+            return ;
+        }
+    });
+    QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+        pythonProccess->deleteLater();
+    });
+    pythonProccess->start(QDir::currentPath()+"/scripts/ecdsa_tbtc_auth.exe", params);
+    pythonProccess->waitForFinished(-1);
+}
+
+void CreateNodeWorker::bond_eth(double amount)
+{
+    updateWorkStatus("--bonding ETH...");
+    QProcess* pythonProccess = new QProcess;
+    QStringList params;
+    params << _keystore;
+    params << _keystore_pwd;
+    params << _currentNode.infuraId;
+    params << QString::number(amount, 'f', 2);
+    QObject::connect(pythonProccess, &QProcess::readyRead, [pythonProccess, amount, this] () {
+        QByteArray data = pythonProccess->readAll();
+        qDebug() <<  data;
+        if (QString(data).contains("transaction confirmed")) {
+            updateWorkStatus(QString("--successfully bonded %1 ETH").arg(amount));
+            deployNode();
+            return;
+        }
+        else {
+            updateWorkStatus("--FATAL ERROR!Bonding ETH failed!");
+            return ;
+        }
+    });
+    QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+        pythonProccess->deleteLater();
+    });
+    pythonProccess->start(QDir::currentPath()+"/scripts/bond_eth.exe", params);
+    pythonProccess->waitForFinished(-1);
 }

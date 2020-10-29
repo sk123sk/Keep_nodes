@@ -1,8 +1,9 @@
 #include "CheckNodeWorker.h"
 #include <QFile>
 #include <QThread>
+#include "Encryptor.h"
 
-CheckNodeWorker::CheckNodeWorker()
+CheckNodeWorker::CheckNodeWorker(QString encryptionPassword): _encryptionPassword(encryptionPassword)
 {
     _networkManager=new QNetworkAccessManager;
 }
@@ -68,6 +69,11 @@ void CheckNodeWorker::checkNodeState(Node node)
     qDebug()<<"SSH end";
 }
 
+void CheckNodeWorker::deleteNode(QJsonArray nodes)
+{
+    saveNodeInfo(nodes);
+}
+
 void CheckNodeWorker::destroyReply()
 {
     qDebug()<<"reply:";
@@ -82,12 +88,13 @@ void CheckNodeWorker::destroyReply()
 
 void CheckNodeWorker::saveNodeInfo(QJsonArray( nodes))
 {
+    Encryptor enc;
     QFile file("nodes.dat");
-    if (!file.open(QIODevice::WriteOnly  | QIODevice::Text)) {
+    if (!file.open(QIODevice::WriteOnly)) {
         qDebug()<<"file error";
         return;
     }
-    qDebug()<<nodes;
-    file.write(QJsonDocument(nodes).toJson());
+    QDataStream out(&file);
+    out <<enc.encrypt(QJsonDocument(nodes).toJson(), _encryptionPassword.toUtf8());
     file.close();
 }

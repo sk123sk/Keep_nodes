@@ -11,8 +11,11 @@ CONFIG += c++11
 SOURCES += \
     CheckNodeWorker.cpp \
     CreateNodeWorker.cpp \
+    Encryptor.cpp \
     main.cpp \
+    ui/AddNodeDialog.cpp \
     ui/CheckNodesUi.cpp \
+    ui/CreatePasswordDialog.cpp \
     ui/Finalstep.cpp \
     ui/Step_1.cpp \
     ui/Step_2.cpp \
@@ -22,7 +25,11 @@ SOURCES += \
 HEADERS += \
     CheckNodeWorker.h \
     CreateNodeWorker.h \
+    Encryptor.h \
+    Node.h \
+    ui/AddNodeDialog.h \
     ui/CheckNodesUi.h \
+    ui/CreatePasswordDialog.h \
     ui/Finalstep.h \
     ui/Step_1.h \
     ui/Step_2.h \
@@ -30,7 +37,9 @@ HEADERS += \
     ui/mainwindow.h
 
 FORMS += \
+    ui/AddNodeDialog.ui \
     ui/CheckNodesUi.ui \
+    ui/CreatePasswordDialog.ui \
     ui/Finalstep.ui \
     ui/Step_1.ui \
     ui/Step_2.ui \
@@ -51,6 +60,24 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../chilkat/chilkat-9.5.0-x
 
 INCLUDEPATH += $$PWD/../chilkat/chilkat-9.5.0-x86_64-8.1.0-posix-seh-rt_v6-rev0/include
 DEPENDPATH += $$PWD/../chilkat/chilkat-9.5.0-x86_64-8.1.0-posix-seh-rt_v6-rev0/include
+
+LIBS += -L$$PWD/lib/openssl/ -lssl-1_1-x64
+LIBS += -L$$PWD/lib/openssl/ -lcrypto-1_1-x64
+
+EXTRA_BINFILES += \
+       $$PWD/lib/openssl/libcrypto-1_1-x64.dll \
+       $$PWD/lib/openssl/libssl-1_1-x64.dll
+
+EXTRA_BINFILES_WIN = $${EXTRA_BINFILES}
+EXTRA_BINFILES_WIN ~= s,/,\\,g
+
+CONFIG(release, debug|release): DESTDIR_WIN = release
+CONFIG(debug, debug|release): DESTDIR_WIN = debug
+for(FILE,EXTRA_BINFILES_WIN) {
+    QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${FILE} $${DESTDIR_WIN}$$escape_expand(\n\t))
+}
+
+INCLUDEPATH += $$PWD/include
 
 DISTFILES +=
 

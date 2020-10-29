@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>307</width>
-    <height>242</height>
+    <width>377</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>307</width>
-    <height>242</height>
+    <width>377</width>
+    <height>232</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>307</width>
-    <height>242</height>
+    <width>377</width>
+    <height>232</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -35,23 +35,23 @@
    <widget class="QPushButton" name="btn_Run_new">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>170</y>
-      <width>131</width>
-      <height>41</height>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Run NEW node</string>
+     <string>Create node</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_check_nodes">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>260</x>
       <y>170</y>
-      <width>131</width>
-      <height>41</height>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -61,9 +61,9 @@
    <widget class="QLabel" name="l_logo">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>50</x>
       <y>10</y>
-      <width>361</width>
+      <width>281</width>
       <height>141</height>
      </rect>
     </property>
@@ -71,7 +71,20 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap resource="../logoKeep.qrc">:/logo/logo1.png</pixmap>
+     <pixmap resource="../resources/logo.qrc">:/logo/logo1.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_addExisting">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>170</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add existing node</string>
     </property>
    </widget>
   </widget>
@@ -80,7 +93,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>307</width>
+     <width>377</width>
      <height>22</height>
     </rect>
    </property>
@@ -88,7 +101,7 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="../logoKeep.qrc"/>
+  <include location="../resources/logo.qrc"/>
  </resources>
  <connections/>
 </ui>

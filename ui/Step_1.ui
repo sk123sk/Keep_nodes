@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>441</height>
+    <width>550</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,40 +18,25 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>643</width>
-    <height>441</height>
+    <width>550</width>
+    <height>400</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>643</width>
-    <height>441</height>
+    <width>550</width>
+    <height>400</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Keep nodes</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLineEdit" name="le_wallet">
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>50</y>
-      <width>271</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>7</pointsize>
-     </font>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="le_pwd">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>100</y>
+      <x>20</x>
+      <y>320</y>
       <width>271</width>
       <height>22</height>
      </rect>
@@ -66,7 +51,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>350</y>
+      <y>220</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -75,25 +60,12 @@
      <string>Select Keystore..</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>30</y>
-      <width>111</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>ETH wallet address</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="l_path_name">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>360</y>
-      <width>431</width>
+      <x>20</x>
+      <y>260</y>
+      <width>591</width>
       <height>16</height>
      </rect>
     </property>
@@ -104,8 +76,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>80</y>
+      <x>20</x>
+      <y>300</y>
       <width>111</width>
       <height>16</height>
      </rect>
@@ -117,11 +89,17 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>160</x>
       <y>30</y>
       <width>54</width>
       <height>14</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>STEP 1</string>
@@ -130,8 +108,8 @@
    <widget class="QPushButton" name="btn_next">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>300</y>
+      <x>440</x>
+      <y>320</y>
       <width>80</width>
       <height>22</height>
      </rect>
@@ -143,8 +121,8 @@
    <widget class="QPushButton" name="btn_back">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>300</y>
+      <x>330</x>
+      <y>320</y>
       <width>80</width>
       <height>22</height>
      </rect>
@@ -159,7 +137,7 @@
       <x>20</x>
       <y>50</y>
       <width>331</width>
-      <height>291</height>
+      <height>161</height>
      </rect>
     </property>
     <property name="readOnly">
@@ -172,20 +150,14 @@
 
 3. Press &quot;Download Keystore File&quot; and save it to your PC
 
-4. Install MetaMask
-
-5. Press &quot;Import wallet&quot; there. Choose  JSON file. Enter password of keystore file
-
-6. Switch to &quot;Ropsten Test Network&quot; at the very top of Metamask window
-
-7. Complete all fields on this screen and select keystore file</string>
+</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>120</y>
+      <x>390</x>
+      <y>50</y>
       <width>151</width>
       <height>161</height>
      </rect>
@@ -203,7 +175,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>643</width>
+     <width>550</width>
      <height>22</height>
     </rect>
    </property>

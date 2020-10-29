@@ -19,6 +19,7 @@ signals:
 public:
     explicit Step_2(QWidget *parent = nullptr);
     ~Step_2();
+    void setApiVisible(bool isVisible);
 
 private slots:
     void on_btn_next_clicked();

@@ -18,7 +18,8 @@ class Step_1 : public QMainWindow
     Q_OBJECT
 
 signals:
-    void setData(QString,QString,QString);
+    void setData(QString,QString);
+    void setWallet(QString);
     void backBtnClicked();
 
 public:
@@ -29,13 +30,16 @@ private slots:
     void on_btn_next_clicked();
     void on_btn_select_keystore_clicked();
     void on_btn_back_clicked();
-    void replyKeepGrantFinished();
+    QString readKeystoreFile();
+    void getWallet(QString keyStore,QString keystore_pwd);
 
 private:
     Ui::Step_1 *ui;
     QString _path;
+    QString _keystore_pwd;
+    QString _keystore;
+    QString _wallet;
     bool _next;
-    QMap<QString, bool> _keepGrants;
     QNetworkAccessManager* _networkManager;
     QNetworkRequest _request;
     QUrl _reqUrl;

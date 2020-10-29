@@ -16,33 +16,34 @@ class FinalStep : public QMainWindow
 
 signals:
     void backBtnClicked();
+    void homeClicked();
 
 public slots:
-    void setData(QString wallet, QString infuraId, QString nodeType, QString nodeName, QString pwd, QString keystore, QString api);
+    void setData(Node node, QString pwd, QString keystore);
     void updateWorkStatus(QString status);
 
 public:
-    explicit FinalStep(QWidget *parent = nullptr);
+    explicit FinalStep(QWidget *parent = nullptr, QString encryptionPassword="");
     ~FinalStep();
+
 
 private slots:
     void on_btn_back_clicked();
     void on_btn_deploy_clicked();
 
+    void on_pb_home_clicked();
+
 private:
     Ui::FinalStep *ui;
     bool _backPushed;
-    QString _wallet;
+    Node _currentNode;
     QString _keystore_pwd;
     QString _keystore;
-    QString _infuraID;
-    QString _nodeType;
-    QString _nodeName;
-    QString _apiKey;
     bool _isNodeUp;
     int _timePassed;
     QTimer* _timerTimePassed;
     CreateNodeWorker* _nodeWorker;
+    QString _encryptionPassword;
 };
 
 #endif // FINALSTEP_H

@@ -13,29 +13,23 @@
 #include <CkStringBuilder.h>
 #include <iostream>
 #include <CkGlobal.h>
+#include "Node.h"
+
 
 class CheckNodeWorker: public QObject
 {
     Q_OBJECT
 
 public:   
-    CheckNodeWorker();
-    struct Node{
-           QString name;
-           QString ip;
-           QString password;
-           QString id;
-           QString type;
-           QString wallet;
-           QString infuraId;
-           int connectedPeers=0;
-       };
+    CheckNodeWorker(QString encryptionPassword);
+
 signals:
     void checkingStateFinished(QString,int);
 
 public slots:
     void destroyNode(QJsonArray nodes, QString id);
     void checkNodeState(Node node);
+    void deleteNode(QJsonArray nodes);
 
 private slots:
     void destroyReply();
@@ -47,6 +41,7 @@ private:
     bool _isReplyFinished;
     CkSsh ssh;
     bool success;
+    QString _encryptionPassword;
 };
 
 #endif // CHECKNODEWORKER_H

@@ -13,28 +13,24 @@
 #include <CkStringBuilder.h>
 #include <iostream>
 #include <CkGlobal.h>
+#include "Node.h"
+#include <QWidget>
 
 class CreateNodeWorker : public QObject
 {
     Q_OBJECT
 
-struct Node{
-  QString name;
-  QString ip;
-  QString password;
-  QString id;
-  QString type;
-  QString wallet;
-  QString infuraId;
-  int connectedPeers=0;
-};
 
 public:
-    CreateNodeWorker();
-    CreateNodeWorker(QString wallet, QString pwd, QString keyStore, QString infuraId, QString nodeLabel, QString nodeType, QString api);
+    CreateNodeWorker(Node node, QString pwd, QString keyStore, QString encryptionPassword);
+
+public slots:
+   void get_eth_balance();
+
 
 signals:
     void updateWorkStatus(QString);
+
 
 private slots:
     void deployNode();
@@ -46,6 +42,12 @@ private slots:
     void deployReply();
     void statusCheckReply();
     void saveNodeInfo();
+    void getGrant();
+    void replyKeepGrantFinished();
+    void delegateKeep();
+    void beacon_auth();
+    void ecdsa_tbtc_auth();
+    void bond_eth(double amount);
 
 private:
     CkSsh ssh;
@@ -57,9 +59,10 @@ private:
     int _timePassed;
     QString _keystore;
     QString _keystore_pwd;
-    QString _apiKey;
     bool _isNodeStatusActive;
     Node _currentNode;
+    QString _encryptionPassword;
+    QWidget* _widget;
 };
 
 #endif // NODEWORKER_H

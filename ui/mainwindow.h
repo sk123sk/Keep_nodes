@@ -8,6 +8,8 @@
 #include "ui/Finalstep.h"
 #include "ui/CheckNodesUi.h"
 #include <QJsonArray>
+#include <QSettings>
+#include "Node.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,18 +24,24 @@ public:
     ~MainWindow();
 signals:
 
+protected:
+      void showEvent(QShowEvent *ev);
+
 public slots:
-   void setDataStep1(QString wallet, QString pwd, QString path);
+   void setDataStep1(QString pwd, QString keyStoreData);
    void setDataStep2(QString id, QString api);
    void setDataStep3(int node_type, QString nodeName);
+   void setWallet(QString wallet);
    void backClicked();
+   void homeClicked();
 
 
 private slots:
     void on_btn_Run_new_clicked();
-    void readKeyStoreFile();
     QJsonArray readNodesFile();
+    void loadSetting();
     void on_btn_check_nodes_clicked();
+    void on_btn_addExisting_clicked();
 
 private:
     enum node_type {
@@ -41,18 +49,17 @@ private:
        ecdsa
     };
     Ui::MainWindow *ui;
-    QString _eth_wallet;
+    Node _currentNode;
     QString _keystore_pwd;
     QString _keystore_path;
-    QString _infura_project_ID;
-    QString _node_name;
     QString _keystoreData;
-    QString _apiKey;
-    node_type _node_type;
     Step_1* _step1;
     Step_2* _step2;
     Step_3* _step3;
     FinalStep* _finalStep;
     CheckNodesUi* _checkNodes;
+    QString _encryptionPassword;
+    bool _isLoggedIn;
+    QSettings* _settings;
 };
 #endif // MAINWINDOW_H

@@ -15,6 +15,17 @@ Step_2::~Step_2()
     delete ui;
 }
 
+void Step_2::setApiVisible(bool isVisible)
+{
+    if(!isVisible){
+        ui->le_api->hide();
+        ui->label_2->hide();
+        ui->cb_api->hide();
+        ui->plainTextEdit->clear();
+        ui->plainTextEdit->appendPlainText("1. Go to: https://infura.io/ and register account \n 2. Press  'CREATE A PROJECT', give any name. \n  3. Go to Settings tab and copy Project ID");
+    }
+}
+
 void Step_2::on_btn_next_clicked()
 {
     _next=1;
