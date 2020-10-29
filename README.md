@@ -3,7 +3,7 @@ Keep nodes manager
 
 Ready build:
 
---use KeepNodesInstaller.exe to install and run app in windows.
+--use <a href="https://github.com/sk123sk/Keep_nodes/blob/master/KeepNodesInstaller.exe">KeepNodesInstaller.exe</a> to install and run app in windows.
 
 --if you want to install on disk C:\ , better to run Keep_nodes.exe as admin
 
