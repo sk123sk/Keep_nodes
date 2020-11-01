@@ -77,7 +77,7 @@ void CreateNodeWorker::runSSH()
         return;
     }
     //  Authenticate using login/password:
-    success = ssh.AuthenticatePw("root",_currentNode.password.toUtf8());
+    success = ssh.AuthenticatePw(_currentNode.login.toUtf8(),_currentNode.password.toUtf8());
     if (success != true) {
         qDebug()<<ssh.lastErrorText();
         std::cout << ssh.lastErrorText() << "\r\n";

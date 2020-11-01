@@ -25,11 +25,13 @@ public:
 
 signals:
     void backClicked();
+    void homeClicked();
 
 public slots:
     void setUi(QJsonArray nodes);
     void destroyClicked();
     void checkClicked();
+    void homeBtnClicked();
     void deleteClicked();
     void checkingStateFinished(QString name, int peers);
 

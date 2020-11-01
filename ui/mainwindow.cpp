@@ -177,7 +177,7 @@ void MainWindow::on_btn_check_nodes_clicked()
         this->hide();
         _checkNodes->setUi(nodes);
         _checkNodes->show();
-        connect(_checkNodes,SIGNAL(backClicked()),this,SLOT(backClicked()));
+        connect(_checkNodes,SIGNAL(homeClicked()),this,SLOT(homeClicked()));
     }
 }
 

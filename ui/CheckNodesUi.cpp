@@ -31,6 +31,11 @@ void CheckNodesUi::setUi(QJsonArray nodes)
         return;
     }
     QGridLayout*  mainLayout= new QGridLayout;
+    QPushButton* homeBtn = new QPushButton("Check State", this);
+    homeBtn->setObjectName("btn_home");
+    homeBtn->setText("Home");
+    connect(homeBtn, &QPushButton::clicked, this, &CheckNodesUi::homeBtnClicked);
+    mainLayout->addWidget(homeBtn,0,0);
     for(int i=0;i<nodes.size();i++){
         Node node;
         node.name = nodes[i].toObject()["name"].toString();
@@ -41,7 +46,7 @@ void CheckNodesUi::setUi(QJsonArray nodes)
         node.infuraId = nodes[i].toObject()["infura_id"].toString();
         node.vultr_api = nodes[i].toObject()["vultr_api"].toString();
         node.login = nodes[i].toObject()["vultr_api"].toString();
-        mainLayout->addWidget(createNodeGroupBox(node),i,0);
+        mainLayout->addWidget(createNodeGroupBox(node),i+1,0);
     }
     if (_currentWidget != NULL)
         delete _currentWidget;
@@ -84,6 +89,12 @@ void CheckNodesUi::checkClicked()
         }
     }
     _checkWorker->checkNodeState(node);
+}
+
+void CheckNodesUi::homeBtnClicked()
+{
+    emit homeClicked();
+    this->~CheckNodesUi();
 }
 
 void CheckNodesUi::deleteClicked()
