@@ -40,6 +40,7 @@ void CheckNodesUi::setUi(QJsonArray nodes)
         node.wallet = nodes[i].toObject()["wallet"].toString();
         node.infuraId = nodes[i].toObject()["infura_id"].toString();
         node.vultr_api = nodes[i].toObject()["vultr_api"].toString();
+        node.login = nodes[i].toObject()["vultr_api"].toString();
         mainLayout->addWidget(createNodeGroupBox(node),i,0);
     }
     if (_currentWidget != NULL)
@@ -67,7 +68,9 @@ void CheckNodesUi::destroyClicked()
 
 void CheckNodesUi::checkClicked()
 {
+
     QString senderNode = sender()->objectName();
+
     Node node;
     for(int i=0;i<_nodes.size();i++){
         if(_nodes[i].toObject()["name"].toString()==senderNode){
@@ -76,10 +79,10 @@ void CheckNodesUi::checkClicked()
             node.ip = _nodes[i].toObject()["ip"].toString();
             node.type = _nodes[i].toObject()["type"].toString();
             node.name = _nodes[i].toObject()["name"].toString();
+            node.login = _nodes[i].toObject()["login"].toString();
             break;
         }
     }
-
     _checkWorker->checkNodeState(node);
 }
 
@@ -131,14 +134,14 @@ QGroupBox* CheckNodesUi::createNodeGroupBox(Node node)
     QGridLayout* infoLayout = new QGridLayout();
     qDebug()<<infoLayout;
     QPlainTextEdit* text = new QPlainTextEdit(this);
-    text->setLineWrapMode(QPlainTextEdit::NoWrap);
+    text->setLineWrapMode(QPlainTextEdit::WidgetWidth);
     text->appendPlainText(QString("IP: %1 \n").arg(node.ip));
+    text->appendPlainText(QString("Login: %1 \n").arg(node.login));
     text->appendPlainText(QString("Password: %1 \n").arg(node.password));
     text->appendPlainText(QString("Type: %1 \n").arg(node.type));
     text->appendPlainText(QString("Wallet: %1 \n").arg(node.wallet));
-    text->appendPlainText(QString("vultr: %1 \n").arg(node.vultr_api));
-    text->setFixedWidth(341);
-    text->setFixedHeight(150);
+    text->setFixedWidth(351);
+    text->setFixedHeight(170);
     qDebug()<<node.name<<node.isCustomVPS<<node.vultr_api;
     infoLayout->addWidget(text,0,0);
     QPushButton* checkBtn = new QPushButton("Check State", this);

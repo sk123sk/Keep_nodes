@@ -24,8 +24,6 @@ public:
     ~MainWindow();
 signals:
 
-protected:
-      void showEvent(QShowEvent *ev);
 
 public slots:
    void setDataStep1(QString pwd, QString keyStoreData);

@@ -131,15 +131,12 @@
      <bool>true</bool>
     </property>
     <property name="plainText">
-     <string>1. Obtain Free TestNet ETH: go to website and connect your MetaMask there. Press &quot;request 1 ether from faucet&quot;
-https://faucet.metamask.io/
+     <string>1. Obtain Free TestNet ETH: go to website and connect your MetaMask there. Press &quot;request 1 ETH from faucet&quot;
+https://faucet.metamask.io/  or login with your github account in here https://faucet.kyber.network/ then paste your wallet
 
-2. Request for 300k test KEEP was successfull. Delegate KEEP now. Instruction:
-https://icohigh.gitbook.io/keep-nodes/english/installation-guide/delegating-keep
+2. Choose node type: beacon or ECDSA on this step screen
 
-3. Choose node type: beacon or ECDSA on this step screen
-
-4. Give a name to your node</string>
+3. Give a name to your node</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">

@@ -126,8 +126,7 @@
 
 3. Go to Settings tab and copy Project ID 
 
-4. App is renting server at vultr.com. You can choose wether to create your own account there(100$ free for new users) and input API-key(from Vultr-Account-API) or to use standart developper key for tests for free(in this case VPS will be connected to dev's vultr account).
-NOTE! If you create your own vultr account, there is no need to rent VPS, installer will do it - simply enter API-key here.</string>
+4. If you use vultr.com VPS service you can add your API-KEY to have more managing opportunities.  Use default API-key only for test purposes, in that case VPS server will be connected to my vultr account.</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">

@@ -18,9 +18,10 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), _step1(NULL), _isLoggedIn(0)
 {
-    ui->setupUi(this);
+   ui->setupUi(this);
     _settings=new QSettings("keep_nodes.conf", QSettings::IniFormat);
     _settings->setPath(QSettings::IniFormat,QSettings::UserScope, QDir::currentPath());
+    loadSetting();
 }
 
 MainWindow::~MainWindow()
@@ -28,10 +29,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::showEvent( QShowEvent* event ) {
-    QWidget::showEvent( event );
-    loadSetting();
-}
+
 
 void MainWindow::setDataStep1(QString pwd, QString keyStoreData)
 {
@@ -203,6 +201,7 @@ void MainWindow::on_btn_addExisting_clicked()
         QJsonObject node;
         node.insert("name", newNode.name);
         node.insert("ip", newNode.ip);
+        node.insert("login", newNode.login);
         node.insert("password", newNode.password);
         node.insert("id", newNode.id);
         node.insert("type", newNode.type);
@@ -242,11 +241,12 @@ QJsonArray MainWindow::readNodesFile()
 
 void MainWindow::loadSetting()
 {
+    this->hide();
     if (_isLoggedIn)
         return;
     QString pwdHash = _settings->value("user_verification").toString();
     if (pwdHash==""){
-        CreatePasswordDialog* pwdDialog=new CreatePasswordDialog;
+        CreatePasswordDialog* pwdDialog=new CreatePasswordDialog(this);
         connect(pwdDialog, &CreatePasswordDialog::setPassword, this, [=](const QString &pwd){
             _encryptionPassword=pwd;
             Encryptor encryptor;

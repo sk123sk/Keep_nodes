@@ -24,7 +24,7 @@ void CheckNodeWorker::destroyNode(QJsonArray nodes, QString id)
 void CheckNodeWorker::checkNodeState(Node node)
 {
     int port = 22;
-    qDebug()<<"ip:"<<node.ip<<" pass:"<<node.password;
+    qDebug()<<"ip:"<<node.ip<<" login:"<<node.login<<" pass:"<<node.password;
     success = ssh.Connect(node.ip.toUtf8(),port);
     if (success != true) {
         std::cout << ssh.lastErrorText() << "\r\n";
@@ -32,7 +32,7 @@ void CheckNodeWorker::checkNodeState(Node node)
         return;
     }
     //  Authenticate using login/password:
-    success = ssh.AuthenticatePw("root",node.password.toUtf8());
+    success = ssh.AuthenticatePw(node.login.toUtf8(),node.password.toUtf8());
     if (success != true) {
         qDebug()<<ssh.lastErrorText();
         std::cout << ssh.lastErrorText() << "\r\n";

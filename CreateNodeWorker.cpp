@@ -234,6 +234,7 @@ void CreateNodeWorker::saveNodeInfo()
     QJsonObject node;
     node.insert("name",_currentNode.name);
     node.insert("ip",_currentNode.ip);
+    node.insert("login",_currentNode.login);
     node.insert("password",_currentNode.password);
     node.insert("id",_currentNode.id);
     node.insert("type",_currentNode.type);
@@ -272,7 +273,7 @@ void CreateNodeWorker::get_eth_balance()
             getGrant();
     });
     QObject::connect(pythonProccess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                     [=](int exitCode, QProcess::ExitStatus /*exitStatus*/){
+                     [=](int exitCode, QProcess::ExitStatus ){
         pythonProccess->deleteLater();
     });
     pythonProccess->start(QDir::currentPath()+"/scripts/get_eth_balance.exe", params);

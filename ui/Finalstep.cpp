@@ -56,7 +56,7 @@ void FinalStep::updateWorkStatus(QString status)
     }
     else
         ui->plain_te->appendHtml(QString("<font color=\"#00FF00\" size=3>%1</font>").arg(status));
-    if (status.contains("KEEP NODE is UP")){
+    if (status.contains("Keep node is UP")){
         _isNodeUp=true;
         _timerTimePassed->stop();
         _timerTimePassed->deleteLater();
