@@ -17,6 +17,7 @@ SOURCES += \
     ui/CheckNodesUi.cpp \
     ui/CreatePasswordDialog.cpp \
     ui/Finalstep.cpp \
+    ui/Spoiler.cpp \
     ui/Step_1.cpp \
     ui/Step_2.cpp \
     ui/Step_3.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     ui/CheckNodesUi.h \
     ui/CreatePasswordDialog.h \
     ui/Finalstep.h \
+    ui/Spoiler.h \
     ui/Step_1.h \
     ui/Step_2.h \
     ui/Step_3.h \

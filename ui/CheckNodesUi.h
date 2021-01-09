@@ -26,6 +26,11 @@ public:
 signals:
     void backClicked();
     void homeClicked();
+    void destroyNode(QJsonArray, QString);
+    void checkNodeState(Node);
+    void deleteNode(QJsonArray);
+    void checkLiveLogs(Node);
+    void stopLogs();
 
 public slots:
     void setUi(QJsonArray nodes);
@@ -33,7 +38,9 @@ public slots:
     void checkClicked();
     void homeBtnClicked();
     void deleteClicked();
+    void logsBtnClicked();
     void checkingStateFinished(QString name, int peers);
+    void fixWindowSize();
 
 private slots:
     QGroupBox* createNodeGroupBox(Node node);
@@ -44,6 +51,7 @@ private:
     CheckNodeWorker* _checkWorker;
     QString _encryptionPassword;
     QWidget* _currentWidget;
+    bool _isRunningLogs;
 
 
 

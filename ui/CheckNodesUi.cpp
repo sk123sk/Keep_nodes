@@ -7,13 +7,24 @@
 #include <QPlainTextEdit>
 #include <QtConcurrent/QtConcurrent>
 #include <QMessageBox>
+#include "Spoiler.h"
+
+Q_DECLARE_METATYPE(Node)
 
 CheckNodesUi::CheckNodesUi(QWidget *parent,QString encryptionPassword) :
-    QMainWindow(parent), _encryptionPassword(encryptionPassword),_currentWidget(NULL),
+    QMainWindow(parent), _encryptionPassword(encryptionPassword),_currentWidget(NULL), _isRunningLogs(false),
     ui(new Ui::CheckNodesUi)
 {
     _checkWorker = new CheckNodeWorker(_encryptionPassword);
+    QThread* checkworkerThread = new QThread();
+    _checkWorker->moveToThread(checkworkerThread);
+    checkworkerThread->start();
+    qRegisterMetaType<Node>();
     connect(_checkWorker, SIGNAL(checkingStateFinished(QString,int)),this, SLOT(checkingStateFinished(QString,int)));
+    connect(this, SIGNAL(destroyNode(QJsonArray, QString)), _checkWorker, SLOT(destroyNode(QJsonArray, QString)));
+    connect(this, SIGNAL(checkNodeState(Node)), _checkWorker, SLOT(checkNodeState(Node)));
+    connect(this, SIGNAL(deleteNode(QJsonArray)), _checkWorker, SLOT(deleteNode(QJsonArray)));
+    connect(this, SIGNAL(checkLiveLogs(Node)), _checkWorker, SLOT(checkLiveLogs(Node)));
 }
 
 CheckNodesUi::~CheckNodesUi()
@@ -34,6 +45,7 @@ void CheckNodesUi::setUi(QJsonArray nodes)
     QPushButton* homeBtn = new QPushButton("Check State", this);
     homeBtn->setObjectName("btn_home");
     homeBtn->setText("Home");
+    homeBtn->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     connect(homeBtn, &QPushButton::clicked, this, &CheckNodesUi::homeBtnClicked);
     mainLayout->addWidget(homeBtn,0,0);
     for(int i=0;i<nodes.size();i++){
@@ -46,14 +58,27 @@ void CheckNodesUi::setUi(QJsonArray nodes)
         node.infuraId = nodes[i].toObject()["infura_id"].toString();
         node.vultr_api = nodes[i].toObject()["vultr_api"].toString();
         node.login = nodes[i].toObject()["vultr_api"].toString();
-        mainLayout->addWidget(createNodeGroupBox(node),i+1,0);
+        Spoiler* spoiler = new Spoiler("",300, this);
+        auto * anyLayout = new QVBoxLayout();
+        QGroupBox* gb = createNodeGroupBox(node);
+       // gb->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+        anyLayout->addWidget(gb);
+        spoiler->setContentLayout(*anyLayout);
+       // spoiler->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+        QLabel* label = new QLabel;
+        label->setText(node.name);
+        label->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+        mainLayout->addWidget(label,i*2+1,0);
+        mainLayout->addWidget(spoiler,i*2+2,0);
+        mainLayout->minimumSize();
     }
     if (_currentWidget != NULL)
         delete _currentWidget;
     _currentWidget = new QWidget(this);
+    _currentWidget->setMinimumWidth(450);
     this->setCentralWidget(_currentWidget);
     _currentWidget->setLayout(mainLayout);
-    resize(sizeHint());
+    qDebug()<<"sizes"<<_currentWidget->size()<<mainLayout->sizeHint();
 }
 
 void CheckNodesUi::destroyClicked()
@@ -67,7 +92,7 @@ void CheckNodesUi::destroyClicked()
             break;
         }
     }
-    _checkWorker->destroyNode(_nodes, nodeID);
+    emit destroyNode(_nodes, nodeID);
     setUi(_nodes);
 }
 
@@ -88,7 +113,7 @@ void CheckNodesUi::checkClicked()
             break;
         }
     }
-    _checkWorker->checkNodeState(node);
+    emit checkNodeState(node);
 }
 
 void CheckNodesUi::homeBtnClicked()
@@ -108,8 +133,58 @@ void CheckNodesUi::deleteClicked()
             break;
         }
     }
-    _checkWorker->deleteNode(_nodes);
+    emit deleteNode(_nodes);
     setUi(_nodes);
+}
+
+void CheckNodesUi::logsBtnClicked()
+{
+    resize(sizeHint());
+    if (_isRunningLogs){
+        QMessageBox msgBox;
+        msgBox.setText("Close another Node logs");
+        msgBox.exec();
+        return;
+    }
+    QString senderNode = sender()->objectName();
+    _isRunningLogs = true;
+    Node node;
+    for(int i=0;i<_nodes.size();i++){
+        if(_nodes[i].toObject()["name"].toString()==senderNode){
+            node.id = _nodes[i].toObject()["id"].toString();
+            node.password = _nodes[i].toObject()["password"].toString();
+            node.ip = _nodes[i].toObject()["ip"].toString();
+            node.type = _nodes[i].toObject()["type"].toString();
+            node.name = _nodes[i].toObject()["name"].toString();
+            node.login = _nodes[i].toObject()["login"].toString();
+            break;
+        }
+    }
+     QWidget* logsWindow = new QWidget();
+     QGridLayout*  mainLayout= new QGridLayout;
+     QTextEdit* logs = new QTextEdit(logsWindow);
+     mainLayout->addWidget(logs,0,0);
+     logsWindow->setLayout(mainLayout);
+     logs->setFixedWidth(751);
+     logs->setFixedHeight(370);
+     QPalette p = logs->palette();
+     p.setColor(QPalette::Base, Qt::black);
+     logs->setPalette(p);
+     logs->setTextColor(QColor("#ADD8E6"));
+     logs->setFontWeight(QFont::Bold);
+     logs->setFontPointSize(6);
+     connect(_checkWorker, &CheckNodeWorker::updateLogs, [=](QString log){
+      QString text = logs->toPlainText();
+      text.prepend(log);
+      logs->append(log);
+     });
+     logsWindow->setAttribute(Qt::WA_DeleteOnClose,true);
+     connect(logsWindow, &QWidget::destroyed, [=]() {
+         _isRunningLogs = false;
+     });
+     connect(logsWindow, SIGNAL(destroyed()), _checkWorker, SLOT(stopLogs()));
+     logsWindow->show();
+    emit checkLiveLogs(node);
 }
 
 void CheckNodesUi::checkingStateFinished(QString name, int peers)
@@ -132,6 +207,12 @@ void CheckNodesUi::checkingStateFinished(QString name, int peers)
                 text->appendPlainText("---------------------\n -Status FAIL. Connected peers: 0. If this is new node, wait 5 mins before checking status");
             }
         }
+}
+
+void CheckNodesUi::fixWindowSize()
+{
+    qDebug()<<"resized";
+    resize(sizeHint());
 }
 
 QGroupBox* CheckNodesUi::createNodeGroupBox(Node node)
@@ -163,6 +244,10 @@ QGroupBox* CheckNodesUi::createNodeGroupBox(Node node)
     delBtn->setObjectName(node.name);
     connect(delBtn, &QPushButton::clicked, this, &CheckNodesUi::deleteClicked);
     buttonsLayout->addWidget(delBtn,0,1);
+    QPushButton* logsBtn = new QPushButton("Live logs", this);
+    logsBtn->setObjectName(node.name);
+    connect(logsBtn, &QPushButton::clicked, this, &CheckNodesUi::logsBtnClicked);
+    buttonsLayout->addWidget(logsBtn,0,2);
     if (node.vultr_api != "" && node.id != ""){
         QPushButton* destroyBtn = new QPushButton("Destroy VPS", this);
         destroyBtn->setObjectName(node.name);

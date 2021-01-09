@@ -3,7 +3,7 @@
 #include <QThread>
 #include "Encryptor.h"
 
-CheckNodeWorker::CheckNodeWorker(QString encryptionPassword): _encryptionPassword(encryptionPassword)
+CheckNodeWorker::CheckNodeWorker(QString encryptionPassword): _encryptionPassword(encryptionPassword), _stopLogs(false)
 {
     _networkManager=new QNetworkAccessManager;
 }
@@ -69,9 +69,50 @@ void CheckNodeWorker::checkNodeState(Node node)
     qDebug()<<"SSH end";
 }
 
+void CheckNodeWorker::checkLiveLogs(Node node)
+{
+    int port = 22;
+    qDebug()<<"ip:"<<node.ip<<" login:"<<node.login<<" pass:"<<node.password;
+    success = ssh.Connect(node.ip.toUtf8(),port);
+    if (success != true) {
+        std::cout << ssh.lastErrorText() << "\r\n";
+        qDebug()<<ssh.lastErrorText();
+        return;
+    }
+    //  Authenticate using login/password:
+    success = ssh.AuthenticatePw(node.login.toUtf8(),node.password.toUtf8());
+    if (success != true) {
+        qDebug()<<ssh.lastErrorText();
+        std::cout << ssh.lastErrorText() << "\r\n";
+        return;
+    }
+    QString cmd;
+    cmd = node.type == "BEACON"? "sudo docker logs keep-client -f --since 1m" :"sudo docker logs keep-ecdsa -f --since 1m";
+    _sshChannel = ssh.OpenSessionChannel();
+    if (_sshChannel < 0) {
+        qDebug()<< ssh.lastErrorText() << "\r\n";
+        return;
+    }
+    int pollTimeoutMs = 500;
+    ssh.SendReqExec(_sshChannel, cmd.toUtf8());
+    _logsTimer = new QTimer();
+    connect(_logsTimer, &QTimer::timeout, [=](){
+       readSshChannel();
+    });
+    _logsTimer->start(1000);
+
+
+}
+
 void CheckNodeWorker::deleteNode(QJsonArray nodes)
 {
     saveNodeInfo(nodes);
+}
+
+void CheckNodeWorker::stopLogs()
+{
+   ssh.ChannelSendClose(_sshChannel);
+   _logsTimer->stop();
 }
 
 void CheckNodeWorker::destroyReply()
@@ -97,4 +138,11 @@ void CheckNodeWorker::saveNodeInfo(QJsonArray( nodes))
     QDataStream out(&file);
     out <<enc.encrypt(QJsonDocument(nodes).toJson(), _encryptionPassword.toUtf8());
     file.close();
+}
+
+void CheckNodeWorker::readSshChannel()
+{
+    int res = ssh.ChannelRead(_sshChannel);
+    if (res>0)
+        emit updateLogs(ssh.getReceivedText(_sshChannel,"ansi"));
 }
